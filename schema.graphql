@@ -1,0 +1,21 @@
+schema {
+  query: Query
+}
+
+type Query {
+  getUserById(userId: ID!): UserDetails!
+}
+
+type UserDetails {
+  userId: ID!
+  email: String!
+  firstName: String
+  lastName: String
+  organization: Organization
+}
+
+type Organization {
+  orgId: ID!
+  orgName: String!
+  logoUrl: String
+}

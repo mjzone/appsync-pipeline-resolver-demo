@@ -1,0 +1,8 @@
+#set($orgId = $ctx.prev.result.orgId)
+{
+    "version" : "2018-05-29",
+    "operation" : "GetItem",
+    "key" : {
+        "orgId" : $util.dynamodb.toDynamoDBJson($orgId)
+    }
+}

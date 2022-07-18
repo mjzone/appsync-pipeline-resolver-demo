@@ -1,0 +1,73 @@
+service: sls-pipelineresolver-episode
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  stage: dev
+  region: us-east-1
+
+plugins:
+  - serverless-appsync-plugin
+
+custom:
+  appSync:
+    authenticationType: API_KEY
+    schema: schema.graphql
+    apiKeys:
+      - name: myApiKey
+        description: "My api key"
+        expiresAfter: 365d
+    mappingTemplatesLocation: mapping-templates
+    mappingTemplates:
+      - type: Query
+        field: getUserById
+        kind: PIPELINE
+        functions: 
+          - getUserInfo
+          - getOrgInfo
+        request: Query.getUserById.request.vtl
+        response: Query.getUserById.response.vtl
+    functionConfigurations:
+      - name: getUserInfo
+        dataSource: UserTable
+        request: getUserInfo.request.vtl
+        response: getUserInfo.response.vtl
+      - name: getOrgInfo
+        dataSource: OrganizationTable
+        request: getOrgInfo.request.vtl
+        response: getOrgInfo.response.vtl
+    dataSources:
+      - type: AMAZON_DYNAMODB
+        name: UserTable
+        config:
+          tableName: { Ref: userTable } 
+      - type: AMAZON_DYNAMODB
+        name: OrganizationTable
+        config:
+          tableName: { Ref: organizationTable } 
+
+# you can add CloudFormation resource templates here
+resources:
+  Resources:
+    userTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+    organizationTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        KeySchema:
+          - AttributeName: orgId
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: orgId
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
